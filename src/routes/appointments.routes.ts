@@ -1,29 +1,28 @@
 /* eslint-disable no-shadow */
 import { Router } from 'express';
-import { startOfHour, parseISO, ca } from 'date-fns';
+import { parseISO } from 'date-fns';
+import { getCustomRepository } from 'typeorm';
 import AppointmentsRepository from '../repositories/AppointmentsRepository';
 import CreateAppointmentService from '../services/CreateAppointmentService';
+import Appointment from '../models/Appointment';
 
 const appointmentsRouter = Router();
 
-const appointmentsRepository = new AppointmentsRepository();
-
-appointmentsRouter.get('/', (request, response) => {
-  const appointments = appointmentsRepository.all();
+appointmentsRouter.get('/', async (request, response) => {
+  const appointmentsRepository = getCustomRepository(AppointmentsRepository);
+  const appointments = await appointmentsRepository.find();
   response.json(appointments);
 });
 
-appointmentsRouter.post('/', (request, response) => {
+appointmentsRouter.post('/', async (request, response) => {
   try {
     const { provider, date } = request.body;
 
     const parseDate = parseISO(date);
 
-    const createAppointment = new CreateAppointmentService(
-      appointmentsRepository,
-    );
+    const createAppointment = new CreateAppointmentService();
 
-    const appointment = createAppointment.execute({
+    const appointment = await createAppointment.execute({
       provider,
       date: parseDate,
     });
@@ -32,7 +31,7 @@ appointmentsRouter.post('/', (request, response) => {
       appointment,
     });
   } catch (err) {
-    return response.status(400).json({ error: err.messge });
+    return response.status(400).json({ error: err.message });
   }
 });
 
