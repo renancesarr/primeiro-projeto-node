@@ -1,5 +1,4 @@
 import {
-  Column,
   MigrationInterface,
   QueryRunner,
   TableColumn,
